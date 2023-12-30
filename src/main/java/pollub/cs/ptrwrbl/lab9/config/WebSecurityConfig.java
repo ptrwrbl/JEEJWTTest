@@ -50,7 +50,7 @@ public class WebSecurityConfig {
         // zastosowana sesja bezstanowa - sesja nie przechowuje stanu użytkownika.
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/authenticate").permitAll()
+                        .requestMatchers("/authenticate", "/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

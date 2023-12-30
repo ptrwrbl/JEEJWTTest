@@ -1,21 +1,36 @@
 package pollub.cs.ptrwrbl.lab9.services;
 
-import org.springframework.security.core.userdetails.User;
+import pollub.cs.ptrwrbl.lab9.models.UserDAO;
+import pollub.cs.ptrwrbl.lab9.models.UserDTO;
+import pollub.cs.ptrwrbl.lab9.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
-
 @Service
 public class JwtUserDetailsService implements UserDetailsService {
+    @Autowired
+    private UserRepository userDAO;
+    @Autowired
+    private PasswordEncoder bcryptEncoder;
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if ("pai".equals(username)) {
-            return new User("pai", "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6", new ArrayList<>());
-        } else {
-            throw new UsernameNotFoundException("User not found with username: " + username);
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+        UserDAO user = userDAO.findByUsername(username);
+        if (user == null) {
+            throw new
+                    UsernameNotFoundException("User not found with username: " + username);
         }
+        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+                user.getPassword(),new ArrayList<>());
+    }
+    public UserDAO save(UserDTO user) {
+        UserDAO newUser = new UserDAO();
+        newUser.setUsername(user.getUsername());
+        newUser.setPassword(bcryptEncoder.encode(user.getPassword()));
+        return userDAO.save(newUser);
     }
 }
