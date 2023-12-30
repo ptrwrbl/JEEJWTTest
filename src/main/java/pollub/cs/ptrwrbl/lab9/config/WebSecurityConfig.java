@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,11 +48,17 @@ public class WebSecurityConfig {
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // W tym przykładzie nie potrzebne jest zabezpieczenie CSRF
         // zastosowana sesja bezstanowa - sesja nie przechowuje stanu użytkownika.
-        http.csrf().disable()
-                .authorizeHttpRequests().requestMatchers("/authenticate").permitAll()
-                .anyRequest().authenticated().and()
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/authenticate").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
         // Dodanie filtra do walidacji tokena przy każdym żądaniu
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
